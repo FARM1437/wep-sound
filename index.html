@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relaxing Sounds with Video & Audio Selector</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom, #1e1e2f, #2c3e50);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #mainPage {
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    #mainPage h1 {
+      font-size: 3rem;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+      transition: transform 0.5s ease-in-out;
+    }
+    #mainPage h1:hover {
+      transform: scale(1.1);
+    }
+
+    #rainVideo {
+      width: 100%;
+      max-width: 700px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      animation: slideIn 1s ease-out;
+    }
+
+    .controls button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .controls button:hover {
+      background-color: #2563eb;
+      transform: translateY(-3px);
+    }
+
+    .controls button:active {
+      transform: translateY(1px);
+    }
+
+    /* หน้าเลือกวิดีโอ */
+    #videoSelector {
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 900px;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    #videoSelector h2 {
+      font-size: 2.5rem;
+      margin-bottom: 25px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      align-self: center;
+      width: 100%;
+      text-align: center;
+    }
+
+    .video-thumbnails {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 900px;
+    }
+
+    .thumbnail {
+      width: 180px;
+      height: 110px; /* 16:9 */  /* เดิม 101 */ 
+      border-radius: 12px;
+      cursor: pointer;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border: 3px solid transparent;
+      position: relative;
+      user-select: none;
+    }
+
+    .thumbnail:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.8);
+    }
+
+    .thumbnail.selected {
+      border-color: #3b82f6;
+      box-shadow: 0 0 18px 4px #3b82f6;
+    }
+
+    .thumbnail span {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      text-align: center;
+      background: rgba(0,0,0,0.4);
+      border-radius: 0 0 12px 12px;
+      padding: 3px 0;
+      user-select: none;
+    }
+
+    /* หน้าเลือกเสียง */
+    #soundSelectorPage {
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.6s ease-in-out;
+      user-select: none;
+    }
+
+    #soundSelectorPage h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      align-self: center;
+      width: 100%;
+      text-align: center;
+    }
+
+    .sound-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sound-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255 255 255 / 0.1);
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: default;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+
+    .sound-item:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+
+    .sound-item.selected {
+      background: rgba(59, 130, 246, 0.6);
+      box-shadow: 0 0 10px 2px #3b82f6;
+    }
+
+    .sound-name {
+      font-size: 18px;
+      user-select: none;
+    }
+
+    .sound-toggle-btn {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+      user-select: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .sound-toggle-btn:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .sound-toggle-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* ปุ่มกลับ อยู่ท้ายเนื้อหา ไม่ทับข้อความ */
+    .back-btn {
+      position: relative;
+      margin-top: 30px;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+      user-select: none;
+      transition: background-color 0.3s, transform 0.3s;
+      white-space: nowrap;
+      align-self: flex-start; /* ชิดซ้าย */
+    }
+
+    .back-btn:hover {
+      background-color: #e04848;
+      transform: translateY(-2px);
+    }
+
+    .back-btn:active {
+      transform: translateY(1px);
+    }
+
+    @keyframes fadeIn {
+      0% {opacity: 0; transform: translateY(30px);}
+      100% {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes slideIn {
+      0% {opacity: 0; transform: translateX(-50px);}
+      100% {opacity: 1; transform: translateX(0);}
+    }
+      <style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      background: radial-gradient(circle at center, #1e1e2f 0%, #111 100%);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+    #mainPage h1 {
+      font-size: 3.5rem;
+      text-shadow: 0 0 20px #3b82f6, 0 0 30px #2563eb;
+      margin-bottom: 20px;
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #3b82f6; }
+      to { text-shadow: 0 0 25px #60a5fa, 0 0 35px #3b82f6; }
+    }
+    #rainVideo {
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+      transition: transform 0.5s ease-in-out;
+    }
+    #rainVideo:hover {
+      transform: scale(1.02);
+    }
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .controls button {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    }
+    .controls button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
+    }
+    .controls button:active {
+      transform: scale(0.98);
+    }
+    #volumeControl {
+      margin-top: 20px;
+      color: #ccc;
+      text-align: center;
+    }
+    #volumeSlider {
+      width: 300px;
+      accent-color: #3b82f6;
+    }
+    #videoSelector, #soundSelectorPage {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .thumbnail {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .thumbnail:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+    }
+    .sound-toggle-btn {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    }
+    .sound-toggle-btn:hover {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+    }
+    .back-btn {
+      background: linear-gradient(135deg, #ff6b6b, #f87171);
+    }
+    .back-btn:hover {
+      background: linear-gradient(135deg, #e04848, #f43f5e);
+    }
+    /* Particle background using canvas */
+    canvas#stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <!-- เนื้อหาเดิมยังคงเหมือนเดิม -->
+  <!-- ใส่เนื้อหา HTML ด้านบนที่มีอยู่แล้วที่นี่ -->
+
+  <script>
+    // Particle star background
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createStars(count) {
+      stars = [];
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.5,
+          dx: (Math.random() - 0.5) * 0.5,
+          dy: (Math.random() - 0.5) * 0.5
+        });
+      }
+    }
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      stars.forEach(star => {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
+    function updateStars() {
+      stars.forEach(star => {
+        star.x += star.dx;
+        star.y += star.dy;
+        if (star.x < 0 || star.x > canvas.width) star.dx *= -1;
+        if (star.y < 0 || star.y > canvas.height) star.dy *= -1;
+      });
+    }
+    function animate() {
+      drawStars();
+      updateStars();
+      requestAnimationFrame(animate);
+    }
+    createStars(120);
+    animate();
+  </script>
+  </style>
+</head>
+<body>
+  <main>
+    <!-- หน้า main -->
+    <div id="mainPage">
+      <h1>Relaxing Sounds</h1>
+      <video id="rainVideo" autoplay muted loop>
+        <source src="วิดีโอ\1.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      <div class="controls">
+        <button id="toggleSoundBtn">เปิดเสียง</button>
+        <button id="btnChangeSound">Change Sound</button>
+        <button id="btnChangeVideo">Change Video</button>
+      </div>
+       <br>
+      <!-- เพิ่มแถบสไลด์ปรับเสียง -->
+      <div id="volumeControl">
+        <label for="volumeSlider">เสียงทั้งหมด:</label>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5" />
+      </div>
+    </div>
+
+    <!-- หน้าเลือกวิดีโอ -->
+    <div id="videoSelector" style="display:none; flex-direction: column; align-items: flex-start;">
+      <h2>Select Your Rain Video</h2>
+      <div class="video-thumbnails">
+        <div class="thumbnail selected" data-video="วิดีโอ\1.mp4">
+          <img src="capture\C1.png" alt="Rain 1" width="180" height="101"/>
+          <span>Rain 1</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\2.mp4">
+          <img src="capture\C2.png" alt="Rain 2" width="180" height="101"/>
+          <span>Rain 2</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\3.mp4">
+          <img src="capture\C3.png" alt="Rain 3" width="180" height="101"/>
+          <span>Rain 3</span>
+        </div>
+                <div class="thumbnail" data-video="วิดีโอ\4.mp4">
+          <img src="capture\C4.png" alt="Rain 4" width="180" height="101"/>
+          <span>Rain 4</span>
+          </div>
+          <div class="thumbnail" data-video="วิดีโอ\5.mp4">
+          <img src="capture\C5.png" alt="Rain 5" width="180" height="101"/>
+          <span>Rain 5</span>
+        </div>
+                <div class="thumbnail" data-video="วิดีโอ\6.mp4">
+          <img src="capture\C6.png" alt="Rain 6" width="180" height="101"/>
+          <span>Rain 6</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\7.mp4">
+          <img src="capture\C7.png" alt="Rain 7" width="180" height="101"/>
+          <span>Rain 7</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\8.mp4">
+          <img src="capture\C8.png" alt="Rain 8" width="180" height="101"/>
+          <span>Rain 8</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\9.mp4">
+          <img src="capture\C9.png" alt="Rain 9" width="180" height="101"/>
+          <span>Rain 9</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\10.mp4">
+          <img src="capture\C10.png" alt="Rain 10" width="180" height="101"/>
+          <span>Rain 10</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\11.mp4">
+          <img src="capture\C11.png" alt="Rain 11" width="180" height="101"/>
+          <span>Rain 11</span>
+        </div>
+        <div class="thumbnail" data-video="วิดีโอ\12.mp4">
+          <img src="capture\C12.png" alt="Rain 12" width="180" height="101"/>
+          <span>Rain 12</span>
+        </div>
+      </div>
+      <button class="back-btn" id="backFromVideo">กลับ</button>
+    </div>
+
+    <!-- หน้าเลือกเสียง -->
+    <div id="soundSelectorPage" style="display:none; flex-direction: column; align-items: flex-start;">
+      <h2>Select Sound</h2>
+      <div class="sound-list">
+        <div class="sound-item selected" data-sound="เสียง\rain.mp3">
+          <span class="sound-name">Rain</span>
+          <button class="sound-toggle-btn">ยกเลิก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\thander.mp3">
+          <span class="sound-name">Thander</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\wind.mp3">
+          <span class="sound-name">Wind</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\birds.mp3">
+          <span class="sound-name">birds</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\campfire.mp3">
+          <span class="sound-name">Campfire</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\ocean waves.mp3">
+          <span class="sound-name">Ocean waves</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+        <div class="sound-item" data-sound="เสียง\water stream.mp3">
+          <span class="sound-name">Water stream</span>
+          <button class="sound-toggle-btn">เลือก</button>
+        </div>
+      </div>
+      <button class="back-btn" id="backFromSound">กลับ</button>
+    </div>
+  </main>
+
+  <script>
+    const rainVideo = document.getElementById('rainVideo');
+    const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+    const btnChangeVideo = document.getElementById('btnChangeVideo');
+    const btnChangeSound = document.getElementById('btnChangeSound');
+    const mainPage = document.getElementById('mainPage');
+    const videoSelector = document.getElementById('videoSelector');
+    const soundSelectorPage = document.getElementById('soundSelectorPage');
+    const volumeSlider = document.getElementById('volumeSlider');
+
+    const videoThumbnails = videoSelector.querySelectorAll('.thumbnail');
+    const soundItems = soundSelectorPage.querySelectorAll('.sound-item');
+
+    const backFromVideo = document.getElementById('backFromVideo');
+    const backFromSound = document.getElementById('backFromSound');
+
+    // สร้าง audio elements สำหรับแต่ละเสียง
+    const audioElements = [];
+    // เก็บสถานะว่าเสียงไหนถูกเลือก (true = เล่น)
+    const soundSelected = [];
+
+    soundItems.forEach((item, index) => {
+      const soundSrc = item.dataset.sound;
+      const audio = new Audio(soundSrc);
+      audio.loop = true;
+      audio.volume = volumeSlider.value; // เริ่มต้นด้วยค่าความดังจากสไลด์
+      audioElements.push(audio);
+
+      // กำหนดสถานะเริ่มต้นจาก class selected
+      soundSelected[index] = item.classList.contains('selected');
+
+      const btn = item.querySelector('.sound-toggle-btn');
+      btn.textContent = soundSelected[index] ? 'ยกเลิก' : 'เลือก';
+
+      btn.addEventListener('click', () => {
+        soundSelected[index] = !soundSelected[index];
+        if(soundSelected[index]){
+          item.classList.add('selected');
+          btn.textContent = 'ยกเลิก';
+        } else {
+          item.classList.remove('selected');
+          btn.textContent = 'เลือก';
+        }
+        if(isPlaying){
+          if(soundSelected[index]){
+            audioElements[index].play();
+          } else {
+            audioElements[index].pause();
+          }
+        }
+      });
+    });
+
+    let isPlaying = false;
+
+    function updateToggleButtonText(){
+      toggleSoundBtn.textContent = isPlaying ? 'ปิดเสียง' : 'เปิดเสียง';
+    }
+
+    toggleSoundBtn.addEventListener('click', () => {
+      if(isPlaying){
+        // หยุดเสียงทั้งหมด
+        audioElements.forEach(audio => audio.pause());
+        isPlaying = false;
+      } else {
+        // เล่นเสียงที่ถูกเลือกไว้ทั้งหมด
+        audioElements.forEach((audio, idx) => {
+          if(soundSelected[idx]){
+            audio.play();
+          } else {
+            audio.pause();
+          }
+        });
+        isPlaying = true;
+      }
+      updateToggleButtonText();
+    });
+
+    // เมื่อเลื่อนสไลด์ปรับเสียง
+    volumeSlider.addEventListener('input', () => {
+      const volumeValue = volumeSlider.value;
+      audioElements.forEach(audio => {
+        audio.volume = volumeValue;
+      });
+    });
+
+    btnChangeVideo.addEventListener('click', () => {
+      mainPage.style.display = 'none';
+      videoSelector.style.display = 'flex';
+    });
+
+    btnChangeSound.addEventListener('click', () => {
+      mainPage.style.display = 'none';
+      soundSelectorPage.style.display = 'flex';
+    });
+
+    backFromVideo.addEventListener('click', () => {
+      videoSelector.style.display = 'none';
+      mainPage.style.display = 'block';
+    });
+
+    backFromSound.addEventListener('click', () => {
+      soundSelectorPage.style.display = 'none';
+      mainPage.style.display = 'block';
+    });
+
+    videoThumbnails.forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        videoThumbnails.forEach(t => t.classList.remove('selected'));
+        thumb.classList.add('selected');
+        const videoSrc = thumb.dataset.video;
+        rainVideo.src = videoSrc;
+        rainVideo.play();
+        videoSelector.style.display = 'none';
+        mainPage.style.display = 'block';
+      });
+    });
+  </script>
+</body>
+</html>
